@@ -23,7 +23,7 @@ client.on('message', msg => {
             msg.channel.send(value)
     }
     if (msg.content === '-help') {
-        msg.channel.send('**HIGHER OR LOWER Games Rules**\nThe rules are simple. Guess if the next card presented is higher or lower. If you are wrong you have to drink as many times as cards there have been since last time someone got it wrong.\nCommands are:\n**-new game** to start a new game\n**-join** to join the game\n**-start** to start the game once everyones joined\n**-shuffle** to shuffle a new deck of cards\n**-higher/-lower** to guess if the next card is higher or lower\n**-quit** to quit the game')
+        msg.channel.send('**HIGHER OR LOWER Games Rules**\nThe rules are simple. Guess if the next card presented is higher or lower. FYI In this game **2** is the lowest and **Ace** is the highest. If you are wrong you have to drink as many times as cards there have been since last time someone got it wrong.\nCommands are:\n**-new game** to start a new game\n**-join** to join the game\n**-start** to start the game once everyones joined\n**-shuffle** to shuffle a new deck of cards\n**-higher/-lower** to guess if the next card is higher or lower\n**-quit** to quit the game')
     }
     else if (msg.content === '-new game') {
         participants = []
