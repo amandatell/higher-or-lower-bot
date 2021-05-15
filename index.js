@@ -52,19 +52,24 @@ client.on('message', msg => {
                     currCard = res.data.cards[0]
                     msg.channel.send(`All shuffled! The first card of the deck if ${currCard.value} of ${currCard.suit}`, { files: [currCard.image] })
                     awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher else type -lower.`, 1500)
-                })
+                }).catch(() => msg.channel.send("Ooops, I seem to have a bug. Press -new game and let's try again."))
             })
             isShuffled = true
         }
 
     } else if (msg.content === '-higher' || msg.content === '-lower') {
         if (inGame && start) {
-            if (`<@${msg.author.id}>` != participants[index]) {
+            if (!participants.includes(`<@${msg.author.id}>`)) {
+                msg.reply('you are not in the game! If you want to join you have to start a new game.')
+                return
+            }
+            else if (`<@${msg.author.id}>` != participants[index]) {
                 msg.reply('wait for your turn!')
                 return
             }
             drawCard().then(res => {
                 msg.reply(`you drew a ${res.data.cards[0].value} of ${res.data.cards[0].suit}`, { files: [res.data.cards[0].image] })
+                    .catch(() => msg.channel.send("Ooops, I seem to have a bug. Press -new game and let's try again."))
                 if (res.data.remaining === 0) {
                     msg.channel.send(`The deck has finished. Write -shuffle to shuffle a new deck of cards`)
                     isShuffled = false
@@ -109,7 +114,7 @@ client.on('message', msg => {
     }
 });
 
-function sleep(ms) {
+const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -127,7 +132,7 @@ const drawCard = async () => {
     try {
         return await axios.get(`https://deckofcardsapi.com/api/deck/${deck}/draw/?count=1`)
     } catch (error) {
-        console.error(error)
+        console.log(error)
     }
 }
 
@@ -135,7 +140,7 @@ const getDeck = async () => {
     try {
         return await axios.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1')
     } catch (error) {
-        console.error(error)
+        console.log(error)
     }
 }
 
