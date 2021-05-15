@@ -49,10 +49,13 @@ client.on('message', msg => {
             getDeck().then(res => {
                 deck = res.data.deck_id;
                 drawCard().then(res => {
-                    currCard = res.data.cards[0]
-                    msg.channel.send(`All shuffled! The first card of the deck if ${currCard.value} of ${currCard.suit}`, { files: [currCard.image] })
-                    awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher else type -lower.`, 1500)
-                }).catch(() => msg.channel.send("Ooops, I seem to have a bug. Press -new game and let's try again."))
+                    if (res != undefined) {
+                        currCard = res.data.cards[0]
+                        msg.channel.send(`All shuffled! The first card of the deck if ${currCard.value} of ${currCard.suit}`, { files: [currCard.image] })
+                        awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher else type -lower.`, 1500)
+                    }
+                    else msg.reply("Ooops, something went wrong. It's my fault. Enter the same thing again and it should be fine.")
+                })
             })
             isShuffled = true
         }
@@ -68,32 +71,36 @@ client.on('message', msg => {
                 return
             }
             drawCard().then(res => {
-                msg.reply(`you drew a ${res.data.cards[0].value} of ${res.data.cards[0].suit}`, { files: [res.data.cards[0].image] })
-                    .catch(() => msg.channel.send("Ooops, I seem to have a bug. Press -new game and let's try again."))
-                if (res.data.remaining === 0) {
-                    msg.channel.send(`The deck has finished. Write -shuffle to shuffle a new deck of cards`)
-                    isShuffled = false
-                }
-                amount++
-                awaitTime(msg)
-                if (getRealValue(res.data.cards[0].value) < getRealValue(currCard.value) && msg.content === '-higher') {
-                    awaitTime(msg, `${participants[index]}, you were wrong, it was LOWER! DRINK ${amount} times!`, 1000)
-                    amount = 0
-                } else if (getRealValue(res.data.cards[0].value) > getRealValue(currCard.value) && msg.content === '-lower') {
-                    awaitTime(msg, `${participants[index]}, you were wrong, it was HIGHER! DRINK ${amount} times!`, 1000)
-                    amount = 0
-                } else if (getRealValue(res.data.cards[0].value) === getRealValue(currCard.value)) {
-                    awaitTime(msg, value = `OH NO, ${participants[index]}! You have to down your drink.`, 1000)
-                    amount = 0
-                }
-                else
-                    awaitTime(msg, `${participants[index]}, CORRECT! No drinks for you.`, 1000)
+                if (res != undefined) {
+                    msg.reply(`you drew a ${res.data.cards[0].value} of ${res.data.cards[0].suit}`, { files: [res.data.cards[0].image] })
+                    if (res.data.remaining === 0) {
+                        msg.channel.send(`The deck has finished. Write -shuffle to shuffle a new deck of cards`)
+                        isShuffled = false
+                    }
+                    amount++
+                    awaitTime(msg)
+                    if (getRealValue(res.data.cards[0].value) < getRealValue(currCard.value) && msg.content === '-higher') {
+                        awaitTime(msg, `${participants[index]}, you were wrong, it was LOWER! DRINK ${amount} times!`, 1000)
+                        amount = 0
+                    } else if (getRealValue(res.data.cards[0].value) > getRealValue(currCard.value) && msg.content === '-lower') {
+                        awaitTime(msg, `${participants[index]}, you were wrong, it was HIGHER! DRINK ${amount} times!`, 1000)
+                        amount = 0
+                    } else if (getRealValue(res.data.cards[0].value) === getRealValue(currCard.value)) {
+                        awaitTime(msg, value = `OH NO, ${participants[index]}! You have to down your drink.`, 1000)
+                        amount = 0
+                    }
+                    else
+                        awaitTime(msg, `${participants[index]}, CORRECT! No drinks for you.`, 1000)
 
-                if (index + 1 === participants.length) index = 0
-                else index++
-
-                awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher, else type -lower.`, 2000)
-                currCard = res.data.cards[0]
+                    if (index + 1 === participants.length) index = 0
+                    else index++
+                    if (res.data.remaining % (res.data.remaining / 10) === 0)
+                        awaitTime(msg, `${res.data.remaining} cards of the deck left!`, 1500)
+                    currCard = res.data.cards[0]
+                    awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher, else type -lower.`, 2000)
+                    currCard = res.data.cards[0]
+                }
+                else msg.reply("Ooops, something went wrong. It's my fault. Enter the same thing again and it should be fine.")
             })
         }
         else if (!inGame) msg.channel.send(`You are not playing a game! Type -new game to start a game.`)
