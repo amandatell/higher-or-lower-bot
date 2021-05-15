@@ -1,1 +1,1 @@
-# higher-or-lower-bot
+# discordbot
