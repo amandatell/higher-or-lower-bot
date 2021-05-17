@@ -12,6 +12,7 @@ let currCard
 let amount = 0
 let participants = []
 let index = 0
+let needFreshDeck = true
 let isShuffled = false
 let inGame = false
 let start = false
@@ -39,25 +40,39 @@ client.on('message', msg => {
             participants = []
             index = 0
             isShuffled = false
+            needFreshDeck = true
             inGame = false
             start = false
         }
         else msg.channel.send("You can't quit something you haven't started! Type -new game to start a game.")
     }
+
     else if (msg.content === '-shuffle') {
-        if (inGame && start) {
-            getDeck().then(res => {
-                deck = res.data.deck_id;
-                drawCard().then(res => {
-                    if (res != undefined) {
-                        currCard = res.data.cards[0]
-                        msg.channel.send(`All shuffled! The first card of the deck if ${currCard.value} of ${currCard.suit}`, { files: [currCard.image] })
-                        awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher else type -lower.`, 1500)
-                    }
-                    else msg.reply("Ooops, something went wrong. It's my fault. Enter the same thing again and it should be fine.")
-                })
+        const draw = () => {
+            drawCard().then(res => {
+                if (res != undefined) {
+                    currCard = res.data.cards[0]
+                    msg.channel.send(`All shuffled! The first card of the deck if ${currCard.value} of ${currCard.suit}`, { files: [currCard.image] })
+                    awaitTime(msg, `${participants[index]}, you turn! If you think the next card is higher type -higher else type -lower.`, 1500)
+                }
+                else msg.reply("Ooops, something went wrong. It's my fault. Enter the same thing again and it should be fine.")
             })
-            isShuffled = true
+        }
+        if (inGame && start) {
+            if (needFreshDeck) {
+                getDeck().then(res => {
+                    deck = res.data.deck_id;
+                    drawCard().then(res => {
+                        draw()
+                    })
+                })
+                isShuffled = true
+                needFreshDeck = false
+            } else {
+                reshuffleDeck()
+                draw()
+            }
+
         }
 
     } else if (msg.content === '-higher' || msg.content === '-lower') {
@@ -121,6 +136,13 @@ client.on('message', msg => {
     }
 });
 
+const reshuffleDeck = async () => {
+    try {
+        await axios.get(`https://deckofcardsapi.com/api/deck/${deck}/shuffle/`)
+    } catch (error) {
+        console.log(error)
+    }
+}
 const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
